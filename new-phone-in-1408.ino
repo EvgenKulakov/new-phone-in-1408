@@ -36,12 +36,19 @@ byte colPins[COLS] = {5, 4, 3, 2}; // C4→D6, C3→D7, C2→D8, C1→D9
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 void setup() {
-  mySoftwareSerial.begin(9600); 
+  delay(100);
+  mySoftwareSerial.begin(9600);
+  delay(100);
   myDFPlayer.begin(mySoftwareSerial);
+  delay(100);
   myDFPlayer.setTimeOut(300);
-  myDFPlayer.volume(30);
+  delay(100);
+  myDFPlayer.volume(15);
+  delay(100);
   myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
+  delay(100);
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
+  delay(100);
 
   pinMode(RESET_OUTPUT, OUTPUT);
   pinMode(RESET_INPUT, INPUT_PULLUP);
@@ -54,18 +61,18 @@ void setup() {
     Serial.println("2.Please insert the SD card!");
   } else {
       Serial.println(F("DFPlayer Mini online."));
-  }
+  }  
 }
 
 void loop() {
-  // if (dialingProcess) {
-  //   bool reset = digitalRead(RESET_INPUT);
-  //   if (reset) {
-  //     number = "";
-  //     dialingProcess = false;
-  //     Serial.println("сброс номера");
-  //   }
-  // }
+  if (dialingProcess) {
+    bool reset = digitalRead(RESET_INPUT);
+    if (reset) {
+      number = "";
+      dialingProcess = false;
+      Serial.println("сброс номера");
+    }
+  }
 
   char input = keypad.getKey();
   if (input) {
@@ -108,7 +115,7 @@ void loop() {
     Serial.println("действия после набора 012 (исповедь)");
     dialingProcess = false;
     myDFPlayer.playMp3Folder(4);
-    delay(9000);
+    delay(7000);
   }
 
   // действия после набора 555 (проститься с близкими)
@@ -116,7 +123,7 @@ void loop() {
     number = "";
     Serial.println("действия после набора 555 (проститься с близкими)");
     dialingProcess = false;
-    myDFPlayer.play(5);
+    myDFPlayer.playMp3Folder(5);
     delay(15000);
   }
  
@@ -125,7 +132,7 @@ void loop() {
     number = "";
     Serial.println("действия после победы");
     dialingProcess = false;
-    myDFPlayer.play(6);
+    myDFPlayer.playMp3Folder(6);
     delay(14000);
     // digitalWrite(MAGNET_PIN, LOW);
     // delay(1000);
@@ -137,7 +144,7 @@ void loop() {
     number = "";
     Serial.println("неправильный номер");
     dialingProcess = false;
-    myDFPlayer.play(7);
+    myDFPlayer.playMp3Folder(7);
     delay(3000);
   }
 }
