@@ -15,6 +15,9 @@ DFRobotDFPlayerMini myDFPlayer;
 
 #define WAIT_TIME_BEFORE_RESET 4000
 
+// реле: центральный на плюс питания, левый на плюс магнита (смотреть лапмочками вниз)
+#define MAGNET_PIN 12
+
 // пины для кнопки сброса
 #define RESET_OUTPUT A0 
 #define RESET_INPUT A1
@@ -50,18 +53,14 @@ void setup() {
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
   delay(100);
 
+  Serial.begin(115200);
+  Serial.println(F("DFPlayer Mini online."));
+
   pinMode(RESET_OUTPUT, OUTPUT);
   pinMode(RESET_INPUT, INPUT_PULLUP);
 
-  Serial.begin(115200);
-
-  if (!myDFPlayer.begin(mySoftwareSerial)) {
-    Serial.println("Unable to begin:");
-    Serial.println("1.Please recheck the connection!");
-    Serial.println("2.Please insert the SD card!");
-  } else {
-      Serial.println(F("DFPlayer Mini online."));
-  }  
+  pinMode(MAGNET_PIN, OUTPUT);
+  digitalWrite(MAGNET_PIN, HIGH);
 }
 
 void loop() {
@@ -84,7 +83,6 @@ void loop() {
 
   // действия после набора 666 (ресепшон)
   if (number.equals(RECEPTION_CODE)) {
-    Serial.println("действия после набора 666 (ресепшон)");
     number = "";
     dialingProcess = false;
     myDFPlayer.playMp3Folder(1);
@@ -94,7 +92,6 @@ void loop() {
   // действия после набора 013 (гробовщик)
   if (number.equals(UNDERTAKER_CODE)) {
     number = "";
-    Serial.println("действия после набора 013 (гробовщик)");
     dialingProcess = false;
     myDFPlayer.playMp3Folder(2);
     delay(9000);
@@ -103,7 +100,6 @@ void loop() {
   // действия после набора 003 (скорая помощь)
   if (number.equals(AMBULANCE_CODE)) {
     number = "";
-    Serial.println("действия после набора 003 (скорая помощь)");
     dialingProcess = false;
     myDFPlayer.playMp3Folder(3);
     delay(8000);
@@ -112,7 +108,6 @@ void loop() {
   // действия после набора 012 (исповедь)
   if (number.equals(CONFESSION_CODE)) {
     number = "";
-    Serial.println("действия после набора 012 (исповедь)");
     dialingProcess = false;
     myDFPlayer.playMp3Folder(4);
     delay(7000);
@@ -121,7 +116,6 @@ void loop() {
   // действия после набора 555 (проститься с близкими)
   if (number.equals(GOODBYE_CODE)) {
     number = "";
-    Serial.println("действия после набора 555 (проститься с близкими)");
     dialingProcess = false;
     myDFPlayer.playMp3Folder(5);
     delay(15000);
@@ -130,19 +124,17 @@ void loop() {
   // действия после победы
   if (number.equals(VICTORY_CODE)) {
     number = "";
-    Serial.println("действия после победы");
     dialingProcess = false;
     myDFPlayer.playMp3Folder(6);
     delay(14000);
-    // digitalWrite(MAGNET_PIN, LOW);
-    // delay(1000);
-    // digitalWrite(MAGNET_PIN, HIGH);
+    digitalWrite(MAGNET_PIN, LOW);
+    delay(1000);
+    digitalWrite(MAGNET_PIN, HIGH);
   }
 
   // неправильный номер
   if (dialingProcess && timeInterval(lastDialing, millis()) > WAIT_TIME_BEFORE_RESET) {
     number = "";
-    Serial.println("неправильный номер");
     dialingProcess = false;
     myDFPlayer.playMp3Folder(7);
     delay(3000);
