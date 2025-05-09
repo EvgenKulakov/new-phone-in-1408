@@ -7,7 +7,11 @@
 #define CONFESSION_CODE "012"
 #define GOODBYE_CODE "555"
 
-#define DIGIT_TIME 4000  // время сброса
+#define WAIT_TIME_BEFORE_RESET 4000
+
+// пины для кнопки сброса
+#define RESET_OUTPUT 10 
+#define RESET_INPUT 11
 
 String number = "";
 bool dialingProcess = false;
@@ -27,9 +31,20 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 void setup() {
   Serial.begin(9600);
+  pinMode(RESET_OUTPUT, OUTPUT);
+  pinMode(RESET_INPUT, INPUT_PULLUP);
 }
 
 void loop() {
+  if (dialingProcess) {
+    int reset = digitalRead(RESET_INPUT);
+    if (reset) {
+      number = "";
+      dialingProcess = false;
+      Serial.println("сброс номера");
+    }
+  }
+
   char input = keypad.getKey();
   if (input) {
     number += input;
@@ -94,7 +109,7 @@ void loop() {
     // digitalWrite(MAGNET_PIN, HIGH);
   }
 
-  if (dialingProcess && timeInterval(lastDialing, millis()) > DIGIT_TIME) {
+  if (dialingProcess && timeInterval(lastDialing, millis()) > WAIT_TIME_BEFORE_RESET) {
     number = "";
     Serial.println("неправильный номер");
     dialingProcess = false;
