@@ -18,9 +18,8 @@ DFRobotDFPlayerMini myDFPlayer;
 // реле: центральный на плюс питания, левый на плюс магнита (смотреть лапмочками вниз)
 #define MAGNET_PIN 12
 
-// пины для кнопки сброса
-#define RESET_OUTPUT A0 
-#define RESET_INPUT A1
+// кнопка сброса: один провод в A1, другой в GND
+#define RESET_BUTTON A1
 
 String number = "";
 bool dialingProcess = false;
@@ -56,8 +55,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F("DFPlayer Mini online."));
 
-  pinMode(RESET_OUTPUT, OUTPUT);
-  pinMode(RESET_INPUT, INPUT_PULLUP);
+  pinMode(RESET_BUTTON, INPUT_PULLUP);
 
   pinMode(MAGNET_PIN, OUTPUT);
   digitalWrite(MAGNET_PIN, HIGH);
@@ -65,7 +63,7 @@ void setup() {
 
 void loop() {
   if (dialingProcess) {
-    bool reset = digitalRead(RESET_INPUT);
+    bool reset = digitalRead(RESET_BUTTON);
     if (reset) {
       number = "";
       dialingProcess = false;
@@ -74,7 +72,7 @@ void loop() {
   }
 
   char input = keypad.getKey();
-  if (input) {
+  if (input && !input.equals('R')) {
     number += input;
     Serial.println(number);
     dialingProcess = true;
