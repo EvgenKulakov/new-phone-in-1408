@@ -6,12 +6,12 @@
 SoftwareSerial mySoftwareSerial(10, 11); // RX, TX для плеера DFPlayer Mini 
 DFRobotDFPlayerMini myDFPlayer;
 
-#define VICTORY_CODE "5150673"
-#define RECEPTION_CODE "666"
-#define UNDERTAKER_CODE "013"
-#define AMBULANCE_CODE "003"
-#define CONFESSION_CODE "012"
-#define GOODBYE_CODE "555"
+#define RECEPTION_666_CODE "666"
+#define UNDERTAKER_013_CODE "013"
+#define AMBULANCE_003_CODE "003"
+#define CONFESSION_012_CODE "012"
+#define GOODBYE_555_CODE "555"
+#define VICTORY_5150673_CODE "5150673"
 
 #define WAIT_TIME_BEFORE_RESET 4000
 
@@ -24,6 +24,7 @@ DFRobotDFPlayerMini myDFPlayer;
 String number = "";
 bool dialingProcess = false;
 unsigned long int lastDialing = 0;
+bool resetActive = true;
 
 // R и C - обозначение проводов ROWS и COLS от матричной клавиатуры
 const byte ROWS = 4, COLS = 4;
@@ -62,81 +63,88 @@ void setup() {
 }
 
 void loop() {
-  if (dialingProcess) {
+  if (dialingProcess && resetActive) {
     bool reset = digitalRead(RESET_BUTTON);
     if (reset) {
-      number = "";
-      dialingProcess = false;
-      Serial.println("сброс номера");
+      stopDialingProcess();
+      myDFPlayer.playMp3Folder(8);
+      delay(1000);
     }
   }
 
   char input = keypad.getKey();
-  if (input && !input.equals('R')) {
+  if (input && input != 'R') {
     number += input;
     Serial.println(number);
-    dialingProcess = true;
+    if (!dialingProcess) {
+      bool reset = digitalRead(RESET_BUTTON);
+      if (reset) {
+        resetActive = false;
+        Serial.println("reset отключен");
+      }
+      dialingProcess = true;
+    }
     lastDialing = millis();
   }
 
   // действия после набора 666 (ресепшон)
-  if (number.equals(RECEPTION_CODE)) {
-    number = "";
-    dialingProcess = false;
+  if (number.equals(RECEPTION_666_CODE)) {
+    stopDialingProcess();
     myDFPlayer.playMp3Folder(1);
-    delay(11000);
+    delay(12000);
   }
 
   // действия после набора 013 (гробовщик)
-  if (number.equals(UNDERTAKER_CODE)) {
-    number = "";
-    dialingProcess = false;
+  if (number.equals(UNDERTAKER_013_CODE)) {
+    stopDialingProcess();
     myDFPlayer.playMp3Folder(2);
-    delay(9000);
+    delay(10500);
   }
 
   // действия после набора 003 (скорая помощь)
-  if (number.equals(AMBULANCE_CODE)) {
-    number = "";
-    dialingProcess = false;
+  if (number.equals(AMBULANCE_003_CODE)) {
+    stopDialingProcess();
     myDFPlayer.playMp3Folder(3);
-    delay(8000);
+    delay(9000);
   }
 
   // действия после набора 012 (исповедь)
-  if (number.equals(CONFESSION_CODE)) {
-    number = "";
-    dialingProcess = false;
+  if (number.equals(CONFESSION_012_CODE)) {
+    stopDialingProcess();
     myDFPlayer.playMp3Folder(4);
-    delay(7000);
+    delay(8500);
   }
 
   // действия после набора 555 (проститься с близкими)
-  if (number.equals(GOODBYE_CODE)) {
-    number = "";
-    dialingProcess = false;
+  if (number.equals(GOODBYE_555_CODE)) {
+    stopDialingProcess();
     myDFPlayer.playMp3Folder(5);
-    delay(15000);
+    delay(16000);
   }
  
   // действия после победы
-  if (number.equals(VICTORY_CODE)) {
-    number = "";
-    dialingProcess = false;
+  if (number.equals(VICTORY_5150673_CODE)) {
+    stopDialingProcess();
     myDFPlayer.playMp3Folder(6);
-    delay(14000);
+    delay(14500);
     digitalWrite(MAGNET_PIN, LOW);
-    delay(1000);
+    delay(3000);
     digitalWrite(MAGNET_PIN, HIGH);
   }
 
   // неправильный номер
   if (dialingProcess && timeInterval(lastDialing, millis()) > WAIT_TIME_BEFORE_RESET) {
-    number = "";
-    dialingProcess = false;
+    stopDialingProcess();
     myDFPlayer.playMp3Folder(7);
-    delay(3000);
+    delay(4500);
   }
+}
+
+void stopDialingProcess() {
+  number = "";
+  dialingProcess = false;
+  bool resetActive = true;
+  Serial.println("сброс номера");
 }
 
 unsigned long int timeInterval(unsigned long int time1, unsigned long int time2) {
