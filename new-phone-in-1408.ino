@@ -1,9 +1,9 @@
 #include <Keypad.h>
 #include <DFRobotDFPlayerMini.h>
 #include <SoftwareSerial.h>
-// RX - цифровой вывод 10, необходимо соединить с выводом TX дисплея (RX соединить с 11 пином ардуино через резистор 1 кОм)
-// TX - цифровой вывод 11, необходимо соединить с выводом RX дисплея (TX соединить с 10 пином ардуино через резистор 1 кОм)
-SoftwareSerial mySoftwareSerial(10, 11); // RX, TX для плеера DFPlayer Mini 
+// RX на плеере соединить с 13 пином ардуино через резистор 1 кОм
+// TX на плеере соединить с 12 пином ардуино через резистор 1 кОм
+SoftwareSerial mySoftwareSerial(12, 13);
 DFRobotDFPlayerMini myDFPlayer;
 
 #define RECEPTION_666_CODE "666"
@@ -11,12 +11,13 @@ DFRobotDFPlayerMini myDFPlayer;
 #define AMBULANCE_003_CODE "003"
 #define CONFESSION_012_CODE "012"
 #define GOODBYE_555_CODE "555"
+#define SAUCER_7236_CODE "7236"
 #define VICTORY_5150673_CODE "5150673"
 
 #define WAIT_TIME_BEFORE_RESET 4000
 
 // реле: центральный на плюс питания, левый на плюс магнита (смотреть лапмочками вниз)
-#define MAGNET_PIN 12
+#define MAGNET_PIN A5
 
 // кнопка сброса: один провод в A1, другой в GND
 #define RESET_BUTTON A1
@@ -46,7 +47,7 @@ void setup() {
   delay(100);
   myDFPlayer.setTimeOut(300);
   delay(100);
-  myDFPlayer.volume(15);
+  myDFPlayer.volume(20);
   delay(100);
   myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
   delay(100);
@@ -121,6 +122,13 @@ void loop() {
     myDFPlayer.playMp3Folder(5);
     delay(16000);
   }
+
+  // действия после набора 7236 (ключ в блюдечке)
+  if (number.equals(SAUCER_7236_CODE)) {
+    stopDialingProcess();
+    myDFPlayer.playMp3Folder(9);
+    delay(8000);
+  }
  
   // действия после победы
   if (number.equals(VICTORY_5150673_CODE)) {
@@ -136,14 +144,14 @@ void loop() {
   if (dialingProcess && timeInterval(lastDialing, millis()) > WAIT_TIME_BEFORE_RESET) {
     stopDialingProcess();
     myDFPlayer.playMp3Folder(7);
-    delay(4500);
+    delay(3000);
   }
 }
 
 void stopDialingProcess() {
   number = "";
   dialingProcess = false;
-  bool resetActive = true;
+  resetActive = true;
   Serial.println("сброс номера");
 }
 
